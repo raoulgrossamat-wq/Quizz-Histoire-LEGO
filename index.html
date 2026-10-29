@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEGO History - Morning Brief Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Nunito pour un côté très "LEGO" et rond -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #f8fafc; /* Blanc cassé très propre */
+      background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+
+    /* Couleurs Primaires Historiques LEGO */
+    .lego-red { background-color: #E3000B; border-color: #B80008; color: white; }
+    .lego-yellow { background-color: #FFD500; border-color: #D6B300; color: black; }
+    .lego-blue { background-color: #0055BF; border-color: #00408F; color: white; }
+    
+    .lego-panel {
+      background-color: #ffffff;
+      border: 3px solid #e2e8f0;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    .lego-btn {
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    }
+    .lego-btn:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 rgba(0,0,0,0.2);
+    }
+    .lego-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Maisons (Équipes) */
+    .team-a-bg { background-color: #E3000B; color: white; } /* Rouge */
+    .team-b-bg { background-color: #0055BF; color: white; } /* Bleu */
+
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @keyframes pulseTimer {
+      0%, 100% { transform: scale(1); background-color: #E3000B; color: white; }
+      50% { transform: scale(1.1); background-color: #ffffff; color: #E3000B; border-color: #E3000B; }
+    }
+    .animate-danger { animation: pulseTimer 0.6s infinite ease-in-out; border: 4px solid #E3000B !important; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-yellow-300 selection:text-black">
+
+  <!-- HEADER -->
+  <header class="w-full bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3 shadow-md border-b-4 border-yellow-400">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer group" onclick="app.showScreen('welcome')">
+        <!-- Pas de logo, texte aligné à gauche direct -->
+        <div>
+          <span class="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-slate-400 block mb-0.5">Édition Héritage</span>
+          <h1 class="text-2xl md:text-3xl font-black tracking-tight text-slate-800 flex items-center gap-2 mt-0">
+            L'HISTOIRE DU GROUPE <span class="lego-red px-2 py-0.5 rounded text-lg md:text-2xl shadow-sm border-b-4 border-red-800">LEGO®</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Header actions -->
+      <div class="flex items-center gap-2">
+        <button onclick="app.showLeaderboard()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs md:text-sm font-bold text-slate-600 lego-btn flex items-center gap-1.5 border-2 border-slate-200">
+          🏆 <span class="hidden sm:inline">Archives</span>
+        </button>
+        <button id="soundToggleBtn" onclick="app.toggleSound()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 lego-btn border-2 border-slate-200" title="Activer / Couper le son">
+          <svg id="soundIconOn" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+          </svg>
+          <svg id="soundIconOff" class="w-5 h-5 hidden text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12.414-4.586L21 7.414M18 10.414l3 3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow flex items-center justify-center p-4 max-w-4xl w-full mx-auto relative z-10">
+
+    <!-- SCREEN 1: ACCUEIL & CHOIX DU MODE -->
+    <section id="screen-welcome" class="w-full text-center space-y-8 py-6">
+      <div class="space-y-4">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-yellow-100 border-2 border-yellow-400 rounded-full text-yellow-700 text-xs uppercase tracking-wider font-bold shadow-sm">
+          🧱 Only the best is good enough
+        </div>
+        <h2 class="text-5xl md:text-6xl font-black text-slate-800 tracking-tight pb-2">
+          LA FONDATION EN <span class="text-blue-600">BRIQUES</span>
+        </h2>
+        <p class="text-slate-500 max-w-lg mx-auto text-sm md:text-base font-bold">
+          Testez vos connaissances sur l'histoire de la marque, d'Ole Kirk Kristiansen jusqu'aux innovations écologiques d'aujourd'hui.
+        </p>
+      </div>
+
+      <!-- Sélection du mode -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-2xl mx-auto">
+        <!-- Mode Solo -->
+        <div onclick="app.openNameSetup('solo')" class="group relative bg-white border-4 border-slate-200 hover:border-yellow-400 p-6 rounded-2xl cursor-pointer transition-all shadow-md hover:shadow-xl">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 flex items-center justify-center font-black text-2xl rounded-xl border-2 border-blue-200">
+              👷
+            </div>
+            <span class="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-bold border border-slate-200">Mode Coopératif</span>
+          </div>
+          <h3 class="text-2xl font-black text-slate-800 group-hover:text-blue-600 transition mb-2">Maître Constructeur</h3>
+          <p class="text-sm text-slate-500 font-semibold">Répondez tous ensemble face à l'écran, ou désignez un représentant.</p>
+        </div>
+
+        <!-- Mode Duel Équipes -->
+        <div onclick="app.openNameSetup('duel')" class="group relative bg-white border-4 border-slate-200 hover:border-red-500 p-6 rounded-2xl cursor-pointer transition-all shadow-md hover:shadow-xl">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-red-100 text-red-600 flex items-center justify-center font-black text-2xl rounded-xl border-2 border-red-200">
+              ⚔️
+            </div>
+            <span class="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-bold border border-slate-200">Mode Duel</span>
+          </div>
+          <h3 class="text-2xl font-black text-slate-800 group-hover:text-red-600 transition mb-2">Briques Rouges vs Bleues</h3>
+          <p class="text-sm text-slate-500 font-semibold">Divisez l'équipe en deux et affrontez-vous au tour par tour !</p>
+        </div>
+      </div>
+
+      <!-- Quick Settings -->
+      <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500 pt-4 font-bold">
+        <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border-2 border-slate-200 hover:bg-slate-50 transition shadow-sm">
+          <input type="checkbox" id="timerEnabledCheck" checked class="w-4 h-4 accent-blue-600 rounded">
+          <span>Minuteur (15s)</span>
+        </label>
+        <div class="bg-white px-4 py-2 rounded-xl border-2 border-slate-200 text-slate-600 shadow-sm">
+          Archives : <span id="poolCountText" class="text-blue-600 font-black text-lg">50</span> questions
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: QUESTION EN COURS -->
+    <section id="screen-quiz" class="w-full hidden space-y-6">
+      
+      <!-- Barre d'état -->
+      <div class="lego-panel p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="text-lg px-3 py-1 rounded-lg bg-slate-100 border-2 border-slate-200 text-slate-700 font-black" id="currentRoundBadge">
+            Q1/10
+          </span>
+          <span class="text-xs font-bold px-3 py-1 rounded-full text-white bg-blue-600 border border-blue-700" id="categoryBadge">
+            Histoire
+          </span>
+        </div>
+
+        <div id="duelHeaderWidget" class="hidden flex items-center gap-3 text-xs font-black uppercase">
+          <div id="teamAStatus" class="px-3 py-1.5 rounded-lg transition-all border-2">
+            <span class="text-lg md:text-xl tracking-wide" id="uiTeamAName">ROUGES</span> <span class="mx-1 opacity-50">|</span> <span id="teamAScore" class="text-xl">0</span>
+          </div>
+          <span class="text-slate-400 font-black text-xl">VS</span>
+          <div id="teamBStatus" class="px-3 py-1.5 rounded-lg transition-all border-2">
+            <span class="text-lg md:text-xl tracking-wide" id="uiTeamBName">BLEUS</span> <span class="mx-1 opacity-50">|</span> <span id="teamBScore" class="text-xl">0</span>
+          </div>
+        </div>
+
+        <div id="soloHeaderWidget" class="text-sm font-bold text-slate-700 bg-slate-100 border-2 border-slate-200 px-4 py-1.5 rounded-lg flex items-center">
+          <span id="uiSoloName" class="font-black text-xl text-blue-600 uppercase">NOM</span> <span class="mx-2 opacity-30">|</span> <span id="soloScore" class="font-black text-xl">0</span> <span class="ml-1">pts</span>
+        </div>
+
+        <div id="timerContainer" class="flex items-center gap-3 font-black">
+          <!-- BOUTON JOKER Brique Dorée -->
+          <button id="jokerBtn" onclick="app.useJoker5050()" class="flex items-center justify-center px-4 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black text-sm border-b-4 border-yellow-500 lego-btn transition-all" title="Utiliser la Brique Dorée (1 par partie)">
+            <span class="mr-2 text-xl">🏆</span> 50/50
+          </button>
+
+          <div id="timerBox" class="w-12 h-12 rounded-full bg-slate-100 border-4 border-slate-300 flex items-center justify-center text-slate-700 text-xl shadow-inner transition-colors">
+            15
+          </div>
+        </div>
+      </div>
+
+      <div id="teamTurnIndicator" class="hidden text-center py-1">
+        <p class="text-2xl md:text-3xl font-black tracking-tight text-slate-700" id="teamTurnText">
+          C'est au tour des <span class="text-red-600 uppercase">ROUGES</span> !
+        </p>
+      </div>
+
+      <!-- Question Card -->
+      <div class="lego-panel p-6 md:p-8 relative">
+        <div class="min-h-[100px] flex items-center justify-center text-center">
+          <h3 id="questionText" class="text-2xl md:text-3xl font-black text-slate-800 leading-tight">
+            Chargement de l'archive...
+          </h3>
+        </div>
+
+        <div id="optionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          <!-- Injecté dynamiquement -->
+        </div>
+
+        <div id="feedbackContainer" class="hidden mt-8 p-5 rounded-xl border-4 text-center space-y-3">
+          <div id="feedbackTitle" class="font-black text-2xl md:text-3xl uppercase tracking-wide"></div>
+          <p id="feedbackExplanation" class="text-base font-bold leading-snug text-slate-700"></p>
+          
+          <button id="nextBtn" onclick="app.nextQuestion()" class="mt-5 px-8 py-3 bg-blue-600 text-white font-black text-lg rounded-lg lego-btn inline-flex items-center gap-2 border-b-4 border-blue-800">
+            <span>QUESTION SUIVANTE</span>
+            <span>➔</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: RÉSULTATS -->
+    <section id="screen-results" class="w-full hidden text-center space-y-8 py-6">
+      <div class="space-y-3">
+        <div class="inline-block p-4 rounded-full bg-white border-4 border-yellow-400 text-5xl mb-2 shadow-lg" id="resultTrophyIcon">
+          🏆
+        </div>
+        <h2 id="resultMainTitle" class="text-5xl md:text-6xl font-black text-slate-800 tracking-tight pb-2">
+          FIN DE LA CONSTRUCTION
+        </h2>
+        <p class="text-slate-500 max-w-md mx-auto text-base font-bold">
+          Les briques ont été comptées.
+        </p>
+      </div>
+
+      <div class="lego-panel p-6 md:p-10 max-w-xl mx-auto space-y-8">
+        
+        <div id="soloScoreDisplay" class="space-y-3 bg-slate-50 p-6 rounded-2xl border-2 border-slate-200">
+          <p class="text-xl text-slate-500 font-black tracking-widest uppercase">SCORE FINAL</p>
+          <div class="text-6xl font-black text-blue-600" id="finalScoreVal">8/10</div>
+          <div class="mt-4 inline-block px-5 py-2 rounded-lg bg-yellow-400 text-yellow-900 font-black text-xl border-b-4 border-yellow-500" id="rankTitleBadge">Rang : Maître Constructeur</div>
+        </div>
+
+        <div id="duelScoreDisplay" class="hidden space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-6 rounded-2xl team-a-bg text-center shadow-lg border-b-4 border-red-800">
+              <span id="finalUiTeamAName" class="text-xl font-black tracking-wider text-red-200 block mb-2">ROUGES</span>
+              <span id="finalTeamAScore" class="text-6xl font-black text-white">0</span>
+            </div>
+            <div class="p-6 rounded-2xl team-b-bg text-center shadow-lg border-b-4 border-blue-800">
+              <span id="finalUiTeamBName" class="text-xl font-black tracking-wider text-blue-200 block mb-2">BLEUS</span>
+              <span id="finalTeamBScore" class="text-6xl font-black text-white">0</span>
+            </div>
+          </div>
+          <div id="duelWinnerText" class="text-2xl md:text-3xl font-black tracking-wider text-slate-800 bg-yellow-400 py-4 rounded-xl border-b-4 border-yellow-500 shadow-md">
+            L'équipe gagne !
+          </div>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-100 border-2 border-slate-200 text-left flex gap-4 items-center">
+          <span class="text-4xl">💡</span>
+          <div class="text-sm md:text-base text-slate-600 font-bold">
+            <strong class="text-slate-800 block font-black text-lg uppercase tracking-wide mb-1">Citation du jour :</strong>
+            <span id="dailyMotto">"Only the best is good enough." Bonnes ventes !</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <button onclick="app.showScreen('welcome')" class="px-6 py-3 rounded-lg bg-slate-200 text-slate-700 font-black text-lg lego-btn border-b-4 border-slate-300 hover:bg-slate-300">
+            ACCUEIL
+          </button>
+          <button onclick="app.restartWithSameSettings()" class="px-6 py-3 rounded-lg bg-green-500 text-white font-black text-lg lego-btn border-b-4 border-green-700 hover:bg-green-400">
+            REJOUER
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: CLASSEMENT -->
+    <section id="screen-leaderboard" class="w-full hidden text-center space-y-8 py-6 relative z-10">
+      <div class="space-y-3">
+        <h2 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight pb-2">
+          LES ARCHIVES
+        </h2>
+        <p class="text-slate-500 max-w-md mx-auto text-base font-bold">
+          Historique des meilleurs constructeurs du magasin.
+        </p>
+      </div>
+
+      <div class="lego-panel p-6 md:p-8 max-w-2xl mx-auto">
+        <div class="flex gap-4 border-b-2 border-slate-200 mb-6 pb-2 justify-center font-black text-lg">
+          <button onclick="app.renderLeaderboardList('solo')" id="tabSolo" class="text-blue-600 border-b-4 border-blue-600 px-4 py-2 transition-colors">Solos</button>
+          <button onclick="app.renderLeaderboardList('duel')" id="tabDuel" class="text-slate-400 hover:text-slate-600 px-4 py-2 transition-colors">Duels</button>
+        </div>
+
+        <div id="leaderboardList" class="space-y-4 text-left max-h-[50vh] overflow-y-auto pr-2">
+          <!-- Injecté dynamiquement -->
+        </div>
+        
+        <div class="mt-8 flex justify-center gap-4">
+          <button onclick="app.showScreen('welcome')" class="px-8 py-3 rounded-lg bg-slate-200 text-slate-700 font-black text-lg lego-btn border-b-4 border-slate-300 hover:bg-slate-300">
+            RETOUR
+          </button>
+          <button onclick="app.clearLeaderboard()" class="px-5 py-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm lego-btn border-b-4 border-red-200 transition">
+            Vider l'historique
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: CHOIX DES NOMS -->
+  <div id="nameSetupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="lego-panel max-w-md w-full p-8 space-y-6">
+      <div class="flex justify-between items-center pb-3 border-b-2 border-slate-100">
+        <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight">IDENTIFICATION</h3>
+        <button onclick="app.closeNameSetup()" class="text-slate-400 hover:text-slate-800 text-3xl font-bold leading-none transition">&times;</button>
+      </div>
+      
+      <form id="nameSetupForm" onsubmit="app.startWithNames(event)" class="space-y-5">
+        <div id="soloNameInput" class="space-y-2">
+          <label class="block text-slate-500 text-sm font-bold uppercase">Nom du Constructeur</label>
+          <input type="text" id="participantName" placeholder="Ex: Équipe Matin..." class="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-3 text-slate-800 font-bold focus:outline-none focus:border-blue-500 transition">
+        </div>
+
+        <div id="duelNameInputs" class="space-y-5 hidden">
+          <div>
+            <label class="block text-red-600 font-black text-lg mb-1">Équipe 1 (Rouge)</label>
+            <input type="text" id="team1Name" value="Les Briques Rouges" class="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-3 text-slate-800 font-bold focus:outline-none focus:border-red-500 transition">
+          </div>
+          <div>
+            <label class="block text-blue-600 font-black text-lg mb-1">Équipe 2 (Bleue)</label>
+            <input type="text" id="team2Name" value="Les Briques Bleues" class="w-full bg-slate-50 border-2 border-slate-200 rounded-lg p-3 text-slate-800 font-bold focus:outline-none focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="app.closeNameSetup()" class="px-5 py-3 rounded-lg bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 lego-btn border-b-4 border-slate-200">Annuler</button>
+          <button type="submit" class="px-6 py-3 rounded-lg bg-green-500 hover:bg-green-400 text-white font-black text-lg lego-btn border-b-4 border-green-700">JOUER</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * BANQUE DE QUESTIONS : HISTOIRE DU GROUPE LEGO (Vérifiées)
+     */
+    const INITIAL_QUESTIONS = [
+      { question: "En quelle année Ole Kirk Kristiansen a-t-elle fondé son entreprise (qui deviendra plus tard LEGO) ?", options: ["1932", "1949", "1958", "1920"], correct: 0, category: "Fondation", explanation: "Il a commencé par fabriquer des escabeaux, des planches à repasser et des jouets en bois en 1932 à Billund." },
+      { question: "De quelle langue vient le nom 'LEGO', contraction de 'Leg Godt' ?", options: ["Danois", "Suédois", "Norvégien", "Allemand"], correct: 0, category: "Fondation", explanation: "'Leg Godt' signifie 'Joue Bien' en danois. Coïncidence, cela signifie aussi 'j'assemble' en latin !" },
+      { question: "Quel était le matériau des tous premiers jouets fabriqués par Ole Kirk Kristiansen ?", options: ["Le bois", "Le plastique", "Le métal", "La céramique"], correct: 0, category: "Origines", explanation: "L'entreprise fabriquait d'excellents jouets en bois. Le célèbre canard en bois tiré par une ficelle en est le symbole." },
+      { question: "Quelle est la devise historique de l'entreprise, affichée dans l'atelier dès les années 30 ?", options: ["Only the best is good enough (Seul le meilleur est assez bien)", "Play Well, Build Big", "Imagination has no limits", "Inspire the builders of tomorrow"], correct: 0, category: "Valeurs", explanation: "Ole Kirk l'a fait graver pour rappeler à ses employés (et son fils) l'importance de la qualité, même sur les parties invisibles des jouets." },
+      { question: "En quelle année a été déposé le brevet de la brique LEGO moderne (avec les tubes à l'intérieur) ?", options: ["1958", "1949", "1962", "1978"], correct: 0, category: "Brevet", explanation: "Le 28 janvier 1958 à 13h58 précisément, le brevet introduisant les cylindres internes (Clutch Power) a été déposé." },
+      { question: "Comment s'appelaient les toutes premières briques en plastique lancées en 1949 ?", options: ["Automatic Binding Bricks", "LEGO Mursten", "System i Leg", "Plastic Build-Blocks"], correct: 0, category: "Histoire", explanation: "Elles étaient creuses à l'intérieur et s'emboîtaient moins bien que les briques modernes." },
+      { question: "Dans quel pays se trouve Billund, la ville natale et le siège mondial du Groupe LEGO ?", options: ["Danemark", "Suède", "Pays-Bas", "Allemagne"], correct: 0, category: "Géographie", explanation: "Billund, dans la péninsule du Jutland au Danemark, abrite le siège, la LEGO House et le premier parc LEGOLAND." },
+      { question: "Combien y a-t-il de combinaisons possibles pour assembler six briques LEGO 2x4 classiques de la même couleur ?", options: ["Plus de 915 millions (915 103 765)", "Environ 1 million", "Exactement 10 000", "Plus de 5 milliards"], correct: 0, category: "Mathématiques", explanation: "Un calcul mathématique célèbre a prouvé qu'il existe 915 103 765 combinaisons possibles." },
+      { question: "En quelle année le tout premier parc LEGOLAND a-t-il ouvert ses portes à Billund ?", options: ["1968", "1978", "1958", "1992"], correct: 0, category: "Parcs", explanation: "Il a ouvert en 1968 pour faire face à l'afflux de visiteurs qui venaient voir les modèles LEGO exposés à l'usine." },
+      { question: "Quel produit, destiné aux jeunes enfants, a été introduit mondialement en 1969 ?", options: ["Les briques DUPLO", "La gamme Fabuland", "Les trains LEGO", "Les minifigurines"], correct: 0, category: "Produits", explanation: "Le nom DUPLO vient du latin 'duplus' (double), car ces briques sont exactement deux fois plus grandes sur toutes les dimensions." },
+      { question: "Qui a conçu la minifigurine LEGO moderne, introduite en 1978 ?", options: ["Jens Nygaard Knudsen", "Godtfred Kirk Christiansen", "Kjeld Kirk Kristiansen", "Jørgen Vig Knudstorp"], correct: 0, category: "Design", explanation: "Jens Nygaard Knudsen a dessiné la figurine emblématique sans bras ni jambes fixes avant de trouver le design final articulé." },
+      { question: "Quels étaient les trois thèmes classiques lancés en 1978 avec l'arrivée des minifigurines ?", options: ["Town (Ville), Space (Espace), Castle (Château)", "Pirates, Space, Town", "Trains, Castle, Western", "Aquazone, Space, Town"], correct: 0, category: "Thèmes", explanation: "Ces trois piliers historiques ont défini le 'Système de Jeu' moderne pour les décennies suivantes." },
+      { question: "Quelle a été la toute première licence intellectuelle extérieure acquise par LEGO (lancée en 1999) ?", options: ["Star Wars", "Harry Potter", "Batman", "Mickey Mouse (Disney)"], correct: 0, category: "Licences", explanation: "LEGO Star Wars a été lancé en 1999, coïncidant avec la sortie de l'Épisode I, et a révolutionné le modèle économique de l'entreprise." },
+      { question: "Quelle gamme originale, basée sur une histoire épique à construire, a sauvé LEGO de la faillite au début des années 2000 ?", options: ["BIONICLE", "Ninjago", "Knights' Kingdom", "Exo-Force"], correct: 0, category: "Histoire", explanation: "Lancée en 2001, la gamme BIONICLE a été un énorme succès commercial et narratif qui a maintenu l'entreprise à flot." },
+      { question: "Quel PDG (non issu de la famille fondatrice) a pris les rênes en 2004 et orchestré le spectaculaire redressement du Groupe LEGO ?", options: ["Jørgen Vig Knudstorp", "Niels B. Christiansen", "Bali Padda", "Kjeld Kirk Kristiansen"], correct: 0, category: "Business", explanation: "Il a recentré l'entreprise sur son cœur de métier : la brique, le système de jeu et les fans." },
+      { question: "En quelle année est sorti le film 'La Grande Aventure LEGO' (The LEGO Movie) au cinéma ?", options: ["2014", "2010", "2017", "2012"], correct: 0, category: "Cinéma", explanation: "Réalisé par Phil Lord et Chris Miller, le film a été un succès mondial retentissant." },
+      { question: "Comment s'appelle l'imposant centre d'expérience interactif ouvert à Billund en 2017 ?", options: ["La LEGO House", "Le Musée LEGO", "Le Vault LEGO", "La Fabrique de Briques"], correct: 0, category: "Lieux", explanation: "Surnommée 'Home of the Brick', elle est remplie de chefs-d'œuvre et d'activités interactives." },
+      { question: "En 2018, LEGO a lancé ses premiers éléments 'Plantes fabriquées à partir de plantes'. En quoi sont-ils faits ?", options: ["En plastique polyéthylène d'origine végétale (canne à sucre)", "En bois recyclé", "En algues compressées", "En plastique d'océan recyclé"], correct: 0, category: "Durabilité", explanation: "C'était le premier grand pas vers l'objectif de rendre tous les éléments durables." },
+      { question: "Quel est le nom de la plateforme (lancée en 2008 sous le nom CUUSOO) où les fans soumettent des projets de sets ?", options: ["LEGO Ideas", "LEGO World Builder", "LEGO Design byME", "LEGO Factory"], correct: 0, category: "Communauté", explanation: "Si un projet atteint 10 000 votes, il est évalué par LEGO pour devenir potentiellement un set officiel." },
+      { question: "Quel set historique de 2007 (référence 10182) a inauguré la gamme très prisée des Bâtiments Modulaires (Modular Buildings) ?", options: ["Le Café Corner", "Le Green Grocer", "La Caserne de Pompiers", "Le Grand Emporium"], correct: 0, category: "Sets Culte", explanation: "Conçu avec les retours de la communauté AFOL, c'est l'un des sets les plus recherchés aujourd'hui." },
+      { question: "Quelle est la tolérance de moulage des moules LEGO pour assurer un 'Clutch Power' parfait ?", options: ["5 millièmes de millimètre (0,005 mm)", "1 millimètre", "1 dixième de millimètre", "0,5 millimètre"], correct: 0, category: "Production", explanation: "Une précision microscopique (épaisseur d'un cheveu divisée par 10) qui explique pourquoi les briques de 1958 s'emboîtent avec celles d'aujourd'hui." },
+      { question: "Qui est l'actuel PDG du Groupe LEGO (depuis 2017) ?", options: ["Niels B. Christiansen", "Thomas Kirk Kristiansen", "Jørgen Vig Knudstorp", "Kjeld Kirk Kristiansen"], correct: 0, category: "Business", explanation: "Niels B. Christiansen a poursuivi l'expansion mondiale et accéléré la transition écologique et numérique." },
+      { question: "Que signifie l'acronyme AFOL utilisé dans la communauté ?", options: ["Adult Fan Of LEGO", "Awesome Fan Of LEGO", "Advanced Figures On LEGO", "Assembly For Old LEGO"], correct: 0, category: "Communauté", explanation: "Les Adultes Fans de LEGO représentent une part immense et très créative du marché." },
+      { question: "Quel est le plus grand set LEGO jamais commercialisé en termes de nombre de pièces (plus de 11 000 pièces) ?", options: ["La Carte du Monde (LEGO Art 31203)", "La Tour Eiffel (10307)", "Le Titanic (10294)", "Le Faucon Millenium (75192)"], correct: 0, category: "Records", explanation: "La Carte du Monde contient 11 695 pièces (majoritairement des petites tuiles rondes 1x1)." },
+      { question: "De quelle couleur originale était le tout premier château LEGO classique (set 375 de 1978) ?", options: ["Jaune", "Gris", "Noir", "Rouge"], correct: 0, category: "Sets Culte", explanation: "Le célèbre château jaune de 1978, qui a marqué le lancement de la gamme Castle." },
+      { question: "Dans le sous-sol secret (Le Vault) à Billund, que conserve le Groupe LEGO ?", options: ["Un exemplaire presque complet de chaque set jamais fabriqué", "Les lingots d'or de l'entreprise", "Le premier canard en bois uniquement", "Les plans des machines"], correct: 0, category: "Histoire", explanation: "Le 'Memory Lane' (Vault) contient un exemplaire neuf de la quasi-totalité des boîtes produites dans l'histoire de la marque." },
+      { question: "Comment s'appelle le petit tube cylindrique en plastique ABS utilisé comme matière première dans les usines ?", options: ["Le granulat (granulate)", "La bille", "Le nugget", "L'extrudé"], correct: 0, category: "Production", explanation: "Les granulats arrivent par camions entiers, sont chauffés à 230°C et injectés sous très haute pression." },
+      { question: "Quelle gamme de 1989 a introduit pour la toute première fois des visages différents (pas seulement le sourire classique) et des crochets à la place des mains ?", options: ["LEGO Pirates", "LEGO Castle", "LEGO Space", "LEGO Adventurers"], correct: 0, category: "Design", explanation: "Le Capitaine Barberousse a été la première minifigurine avec un visage détaillé (cache-œil, barbe) et un crochet et une jambe de bois." },
+      { question: "Quelle est la principale caractéristique de la gamme LEGO Technic, lancée en 1977 ?", options: ["Des poutres trouées avec des connecteurs et engrenages", "Des briques lumineuses", "Elle est motorisée par l'eau", "Des figurines plus grandes"], correct: 0, category: "Thèmes", explanation: "Initialement appelée 'Expert Builder', elle permet de créer des modèles mécaniques complexes." },
+      { question: "Combien d'usines principales le Groupe LEGO opère-t-il dans le monde (en 2024, hors nouveaux projets en construction) ?", options: ["5 (Danemark, Mexique, Hongrie, Rép. Tchèque, Chine)", "1 (Uniquement au Danemark)", "3", "12"], correct: 0, category: "Production", explanation: "De nouvelles usines géantes neutres en carbone sont en construction aux États-Unis (Virginie) et au Vietnam." },
+      { question: "Quelle gamme éducative LEGO (MINDSTORMS) a été développée en collaboration avec une célèbre université américaine dans les années 90 ?", options: ["Le MIT (Massachusetts Institute of Technology)", "Harvard", "Stanford", "Caltech"], correct: 0, category: "Innovation", explanation: "Cette collaboration a donné naissance aux premières briques programmables." }
+    ];
+
+    /**
+     * MOTEUR AUDIO (Bruits de briques)
+     */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      initCtx() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      
+      // Bonne réponse: Clics d'assemblage (Briques qui s'emboîtent)
+      playBrickClick() { 
+        if (!this.enabled) return;
+        this.initCtx();
+        if (!this.ctx) return;
+        
+        const now = this.ctx.currentTime;
+        [0, 0.05].forEach((offset) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(800 + (offset*2000), now + offset);
+          osc.frequency.exponentialRampToValueAtTime(100, now + offset + 0.05);
+          
+          gain.gain.setValueAtTime(0, now + offset);
+          gain.gain.linearRampToValueAtTime(0.4, now + offset + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.05);
+          
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + offset); osc.stop(now + offset + 0.05);
+        });
+      }
+
+      // Mauvaise réponse: Briques qui tombent
+      playBrickCrash() {
+        if (!this.enabled) return;
+        this.initCtx();
+        if (!this.ctx) return;
+        
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        
+        osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.2);
+        
+        gain.gain.setValueAtTime(0, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.5, this.ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+        
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+      }
+
+      // Joker: Brique Dorée (Carillon)
+      playGoldSparkle() { 
+        if (!this.enabled) return;
+        this.initCtx();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        
+        let t = this.ctx.currentTime;
+        osc.frequency.setValueAtTime(1200, t);
+        osc.frequency.linearRampToValueAtTime(2000, t + 0.3);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.2, t + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+        
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(t + 0.6);
+      }
+
+      // Timer (Tic)
+      playTick() {
+        if (!this.enabled) return;
+        this.initCtx();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
+      }
+    }
+
+    /**
+     * CONTRÔLEUR DU JEU
+     */
+    class QuizApp {
+      constructor() {
+        this.questionsPool = [...INITIAL_QUESTIONS];
+        this.sound = new SoundEngine();
+        
+        this.gameMode = 'solo';
+        this.activeQuestions = [];
+        this.currentIndex = 0;
+        this.totalQuestionsCount = 10;
+        
+        this.soloScore = 0;
+        this.teamAScore = 0;
+        this.teamBScore = 0;
+        this.currentTurn = 'teamA';
+        
+        this.playerName = 'Constructeur';
+        this.teamAName = 'Rouges';
+        this.teamBName = "Bleus";
+        this.pendingMode = 'solo';
+        
+        this.timerEnabled = true;
+        this.timerSeconds = 15;
+        this.timerInterval = null;
+        this.hasAnswered = false;
+        
+        // JOKER 50/50
+        this.jokers = { solo: true, teamA: true, teamB: true };
+        
+        this.initUI();
+      }
+
+      initUI() {
+        document.getElementById('poolCountText').innerText = this.questionsPool.length;
+      }
+
+      toggleSound() {
+        this.sound.enabled = !this.sound.enabled;
+        const iconOn = document.getElementById('soundIconOn');
+        const iconOff = document.getElementById('soundIconOff');
+        if (this.sound.enabled) {
+          iconOn.classList.remove('hidden');
+          iconOff.classList.add('hidden');
+          this.sound.playBrickClick();
+        } else {
+          iconOn.classList.add('hidden');
+          iconOff.classList.remove('hidden');
+        }
+      }
+
+      showScreen(screenId) {
+        clearInterval(this.timerInterval);
+        document.getElementById('screen-welcome').classList.add('hidden');
+        document.getElementById('screen-quiz').classList.add('hidden');
+        document.getElementById('screen-results').classList.add('hidden');
+        document.getElementById('screen-leaderboard').classList.add('hidden');
+        document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+      }
+
+      openNameSetup(mode) {
+        this.pendingMode = mode;
+        document.getElementById('nameSetupModal').classList.remove('hidden');
+        if (mode === 'solo') {
+          document.getElementById('soloNameInput').classList.remove('hidden');
+          document.getElementById('duelNameInputs').classList.add('hidden');
+          document.getElementById('participantName').required = true;
+          document.getElementById('team1Name').required = false;
+          document.getElementById('team2Name').required = false;
+          setTimeout(() => document.getElementById('participantName').focus(), 50);
+        } else {
+          document.getElementById('soloNameInput').classList.add('hidden');
+          document.getElementById('duelNameInputs').classList.remove('hidden');
+          document.getElementById('participantName').required = false;
+          document.getElementById('team1Name').required = true;
+          document.getElementById('team2Name').required = true;
+          setTimeout(() => document.getElementById('team1Name').focus(), 50);
+        }
+      }
+
+      closeNameSetup() {
+        document.getElementById('nameSetupModal').classList.add('hidden');
+        document.getElementById('nameSetupForm').reset();
+      }
+
+      startWithNames(e) {
+        e.preventDefault();
+        if (this.pendingMode === 'solo') {
+          this.playerName = document.getElementById('participantName').value.trim() || 'Constructeur';
+        } else {
+          this.teamAName = document.getElementById('team1Name').value.trim() || 'Rouges';
+          this.teamBName = document.getElementById('team2Name').value.trim() || 'Bleus';
+        }
+        this.closeNameSetup();
+        this.setupGame(this.pendingMode);
+      }
+
+      setupGame(mode) {
+        this.sound.initCtx();
+        this.gameMode = mode;
+        this.timerEnabled = document.getElementById('timerEnabledCheck').checked;
+        this.totalQuestionsCount = 10;
+        this.jokers = { solo: true, teamA: true, teamB: true };
+
+        const shuffled = [...this.questionsPool].sort(() => 0.5 - Math.random());
+        const targetCount = Math.min(this.totalQuestionsCount, shuffled.length);
+        this.activeQuestions = shuffled.slice(0, targetCount);
+
+        this.currentIndex = 0;
+        this.soloScore = 0;
+        this.teamAScore = 0;
+        this.teamBScore = 0;
+        this.currentTurn = 'teamA';
+
+        if (this.gameMode === 'duel') {
+          document.getElementById('duelHeaderWidget').classList.remove('hidden');
+          document.getElementById('soloHeaderWidget').classList.add('hidden');
+          document.getElementById('teamTurnIndicator').classList.remove('hidden');
+          document.getElementById('uiTeamAName').innerText = this.teamAName;
+          document.getElementById('uiTeamBName').innerText = this.teamBName;
+          this.updateDuelHeader();
+        } else {
+          document.getElementById('duelHeaderWidget').classList.add('hidden');
+          document.getElementById('soloHeaderWidget').classList.remove('hidden');
+          document.getElementById('teamTurnIndicator').classList.add('hidden');
+          document.getElementById('uiSoloName').innerText = this.playerName;
+          document.getElementById('soloScore').innerText = '0';
+        }
+
+        const timerContainer = document.getElementById('timerContainer');
+        if (this.timerEnabled) {
+            timerContainer.classList.remove('hidden');
+            document.getElementById('timerBox').classList.remove('hidden');
+        } else {
+            document.getElementById('timerBox').classList.add('hidden'); 
+        }
+
+        this.showScreen('quiz');
+        this.loadQuestion();
+      }
+
+      restartWithSameSettings() { this.setupGame(this.gameMode); }
+
+      updateDuelHeader() {
+        document.getElementById('teamAScore').innerText = this.teamAScore;
+        document.getElementById('teamBScore').innerText = this.teamBScore;
+        const teamABox = document.getElementById('teamAStatus');
+        const teamBBox = document.getElementById('teamBStatus');
+        const turnText = document.getElementById('teamTurnText');
+
+        if (this.currentTurn === 'teamA') {
+          teamABox.className = "px-4 py-2 rounded-lg team-a-bg border-b-4 border-red-800 scale-105 transition-all shadow-md";
+          teamBBox.className = "px-4 py-2 rounded-lg bg-slate-100 text-slate-400 border-2 border-slate-200 opacity-60 scale-95 transition-all";
+          turnText.innerHTML = `Au tour des <span class="text-red-600 uppercase">${this.teamAName}</span> !`;
+        } else {
+          teamBBox.className = "px-4 py-2 rounded-lg team-b-bg border-b-4 border-blue-800 scale-105 transition-all shadow-md";
+          teamABox.className = "px-4 py-2 rounded-lg bg-slate-100 text-slate-400 border-2 border-slate-200 opacity-60 scale-95 transition-all";
+          turnText.innerHTML = `Au tour des <span class="text-blue-600 uppercase">${this.teamBName}</span> !`;
+        }
+      }
+
+      updateJokerUI() {
+        const btn = document.getElementById('jokerBtn');
+        let available = false;
+        
+        if (this.gameMode === 'solo') available = this.jokers.solo;
+        else available = (this.currentTurn === 'teamA') ? this.jokers.teamA : this.jokers.teamB;
+
+        if (available && !this.hasAnswered) {
+          btn.disabled = false;
+          btn.className = "flex items-center justify-center px-4 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-yellow-900 font-black text-sm border-b-4 border-yellow-500 lego-btn transition-all shadow-sm";
+        } else {
+          btn.disabled = true;
+          btn.className = "flex items-center justify-center px-4 py-2 rounded-lg bg-slate-200 text-slate-400 font-black text-sm border-2 border-slate-300 cursor-not-allowed opacity-50";
+        }
+      }
+
+      useJoker5050() {
+        if (this.hasAnswered) return;
+        
+        let available = false;
+        if (this.gameMode === 'solo' && this.jokers.solo) {
+          this.jokers.solo = false; available = true;
+        } else if (this.gameMode === 'duel') {
+          if (this.currentTurn === 'teamA' && this.jokers.teamA) {
+            this.jokers.teamA = false; available = true;
+          } else if (this.currentTurn === 'teamB' && this.jokers.teamB) {
+            this.jokers.teamB = false; available = true;
+          }
+        }
+
+        if (!available) return;
+
+        this.sound.playGoldSparkle();
+        this.updateJokerUI();
+
+        const q = this.activeQuestions[this.currentIndex];
+        const correctText = q.options[q.correct];
+        const buttons = Array.from(document.querySelectorAll('#optionsGrid button'));
+        
+        const wrongButtons = buttons.filter(btn => btn.querySelector('.text-option').innerText !== correctText);
+        
+        wrongButtons.sort(() => 0.5 - Math.random());
+        wrongButtons[0].style.opacity = '0';
+        wrongButtons[0].style.pointerEvents = 'none';
+        wrongButtons[1].style.opacity = '0';
+        wrongButtons[1].style.pointerEvents = 'none';
+      }
+
+      loadQuestion() {
+        this.hasAnswered = false;
+        clearInterval(this.timerInterval);
+        
+        this.updateJokerUI();
+
+        const q = this.activeQuestions[this.currentIndex];
+        document.getElementById('currentRoundBadge').innerText = `Q${this.currentIndex + 1}/${this.activeQuestions.length}`;
+        document.getElementById('categoryBadge').innerText = q.category || 'Histoire';
+
+        document.getElementById('questionText').innerText = q.question;
+        document.getElementById('feedbackContainer').classList.add('hidden');
+
+        const grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+
+        const choices = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.correct }));
+        choices.sort(() => 0.5 - Math.random());
+
+        const letters = ['A', 'B', 'C', 'D'];
+        choices.forEach((choice, i) => {
+          const btn = document.createElement('button');
+          btn.className = `group w-full p-4 md:p-5 rounded-xl bg-white border-4 border-slate-200 hover:border-blue-500 hover:bg-slate-50 text-left flex items-center justify-between shadow-sm focus:outline-none transition-all`;
+          btn.innerHTML = `
+            <div class="flex items-center gap-4">
+              <span class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-xl text-slate-500 border-2 border-slate-200 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors shrink-0">
+                ${letters[i] || '•'}
+              </span>
+              <span class="text-option text-sm md:text-base font-bold text-slate-700">${choice.text}</span>
+            </div>
+            <div class="option-icon opacity-0 transition-opacity shrink-0"></div>
+          `;
+          btn.onclick = () => this.handleAnswer(choice.isCorrect, btn, choices);
+          grid.appendChild(btn);
+        });
+
+        if (this.timerEnabled) this.startTimer();
+      }
+
+      startTimer() {
+        this.timerSeconds = 15;
+        const box = document.getElementById('timerBox');
+        box.innerText = this.timerSeconds;
+        box.className = "w-12 h-12 rounded-full bg-slate-100 border-4 border-slate-300 flex items-center justify-center text-slate-700 text-xl shadow-inner transition-colors font-black";
+
+        this.timerInterval = setInterval(() => {
+          this.timerSeconds--;
+          box.innerText = this.timerSeconds;
+          if (this.timerSeconds <= 5) {
+            box.className = "w-12 h-12 rounded-full bg-white border-4 flex items-center justify-center text-xl animate-danger font-black shadow-lg";
+            this.sound.playTick();
+          }
+          if (this.timerSeconds <= 0) {
+            clearInterval(this.timerInterval);
+            this.handleTimeout();
+          }
+        }, 1000);
+      }
+
+      handleTimeout() {
+        if (this.hasAnswered) return;
+        this.hasAnswered = true;
+        this.sound.playBrickCrash();
+        this.updateJokerUI();
+        this.revealAnswers(null, false, true);
+      }
+
+      handleAnswer(isCorrect, clickedBtn, choices) {
+        if (this.hasAnswered) return;
+        this.hasAnswered = true;
+        clearInterval(this.timerInterval);
+        
+        this.updateJokerUI();
+
+        if (isCorrect) {
+          this.sound.playBrickClick();
+          if (typeof confetti === 'function') {
+            confetti({ particleCount: 70, spread: 70, colors: ['#E3000B', '#FFD500', '#0055BF', '#ffffff'], origin: { y: 0.65 }});
+          }
+          if (this.gameMode === 'solo') {
+            this.soloScore++;
+            document.getElementById('soloScore').innerText = this.soloScore;
+          } else {
+            if (this.currentTurn === 'teamA') this.teamAScore++;
+            else this.teamBScore++;
+          }
+        } else {
+          this.sound.playBrickCrash();
+        }
+        this.revealAnswers(clickedBtn, isCorrect, false);
+      }
+
+      revealAnswers(clickedBtn, isCorrect, isTimeout) {
+        const q = this.activeQuestions[this.currentIndex];
+        const correctText = q.options[q.correct];
+        const buttons = document.querySelectorAll('#optionsGrid button');
+
+        buttons.forEach(btn => {
+          btn.disabled = true;
+          const text = btn.querySelector('.text-option').innerText;
+          const icon = btn.querySelector('.option-icon');
+
+          if (text === correctText) {
+            btn.className = "w-full p-4 md:p-5 rounded-xl bg-green-50 border-4 border-green-500 text-left flex items-center justify-between shadow-md transform scale-[1.02] transition-transform";
+            icon.innerHTML = `<span class="text-green-600 font-black text-3xl">✓</span>`;
+            icon.classList.remove('opacity-0');
+          } else if (btn === clickedBtn && !isCorrect) {
+            btn.className = "w-full p-4 md:p-5 rounded-xl bg-red-50 border-4 border-red-500 text-left flex items-center justify-between shadow-md";
+            icon.innerHTML = `<span class="text-red-600 font-black text-3xl">✕</span>`;
+            icon.classList.remove('opacity-0');
+          } else {
+            if (btn.style.opacity !== '0') {
+              btn.className = "w-full p-4 md:p-5 rounded-xl bg-slate-100 border-4 border-slate-200 text-left opacity-50 flex items-center justify-between grayscale";
+            }
+          }
+        });
+
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        const feedbackTitle = document.getElementById('feedbackTitle');
+        const feedbackExplanation = document.getElementById('feedbackExplanation');
+
+        feedbackContainer.classList.remove('hidden');
+
+        if (isTimeout) {
+          feedbackContainer.className = "mt-8 p-5 rounded-xl border-4 border-orange-400 bg-orange-50 text-center space-y-3";
+          feedbackTitle.innerText = "⏳ TEMPS ÉCOULÉ !";
+          feedbackTitle.className = "font-black text-2xl md:text-3xl text-orange-600 uppercase";
+        } else if (isCorrect) {
+          feedbackContainer.className = "mt-8 p-5 rounded-xl border-4 border-green-500 bg-green-50 text-center space-y-3";
+          feedbackTitle.innerText = "✨ EXCELLENT !";
+          feedbackTitle.className = "font-black text-2xl md:text-3xl text-green-600 uppercase";
+        } else {
+          feedbackContainer.className = "mt-8 p-5 rounded-xl border-4 border-red-500 bg-red-50 text-center space-y-3";
+          feedbackTitle.innerText = "💥 CONSTRUCTION RATÉE !";
+          feedbackTitle.className = "font-black text-2xl md:text-3xl text-red-600 uppercase";
+        }
+
+        feedbackExplanation.innerText = q.explanation;
+        if (this.gameMode === 'duel') this.updateDuelHeader();
+      }
+
+      nextQuestion() {
+        this.currentIndex++;
+        if (this.currentIndex < this.activeQuestions.length) {
+          if (this.gameMode === 'duel') {
+            this.currentTurn = (this.currentTurn === 'teamA') ? 'teamB' : 'teamA';
+            this.updateDuelHeader();
+          }
+          this.loadQuestion();
+        } else {
+          this.showResults();
+        }
+      }
+
+      showResults() {
+        this.showScreen('results');
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 150, spread: 90, colors: ['#E3000B', '#FFD500', '#0055BF', '#ffffff'], origin: { y: 0.3 }});
+        }
+
+        const mottos = [
+          "« Only the best is good enough. » Excellentes ventes aujourd'hui !",
+          "L'imagination n'a pas de limites... Vos ventes non plus !",
+          "Chaque grande construction commence par une seule brique.",
+          "Continuez d'inspirer les constructeurs de demain !"
+        ];
+        document.getElementById('dailyMotto').innerText = mottos[Math.floor(Math.random() * mottos.length)];
+
+        if (this.gameMode === 'solo') {
+          document.getElementById('soloScoreDisplay').classList.remove('hidden');
+          document.getElementById('duelScoreDisplay').classList.add('hidden');
+
+          const finalScore = this.soloScore;
+          const total = this.activeQuestions.length;
+          document.getElementById('finalScoreVal').innerText = `${finalScore}/${total}`;
+
+          let rank = "", icon = "🏆";
+          const ratio = finalScore / total;
+
+          if (ratio === 1) { rank = "Maître Constructeur"; icon = "👑"; }
+          else if (ratio >= 0.75) { rank = "Designer Senior"; icon = "✨"; }
+          else if (ratio >= 0.5) { rank = "Apprenti Bâtisseur"; icon = "🧱"; }
+          else { rank = "Brique Désolidarisée"; icon = "🧩"; }
+
+          document.getElementById('rankTitleBadge').innerText = `Titre : ${rank}`;
+          document.getElementById('resultTrophyIcon').innerText = icon;
+          
+          this.saveScoreToLocal({ mode: 'solo', name: this.playerName, score: finalScore, total: total, rank: rank });
+        } else {
+          document.getElementById('soloScoreDisplay').classList.add('hidden');
+          document.getElementById('duelScoreDisplay').classList.remove('hidden');
+
+          document.getElementById('finalUiTeamAName').innerText = this.teamAName;
+          document.getElementById('finalUiTeamBName').innerText = this.teamBName;
+          document.getElementById('finalTeamAScore').innerText = this.teamAScore;
+          document.getElementById('finalTeamBScore').innerText = this.teamBScore;
+
+          const duelWinnerText = document.getElementById('duelWinnerText');
+          let winner = "";
+          if (this.teamAScore > this.teamBScore) {
+            duelWinnerText.innerHTML = `L'ÉQUIPE <span class='text-red-600'>${this.teamAName.toUpperCase()}</span> REMPORTE LA VICTOIRE !`;
+            document.getElementById('resultTrophyIcon').innerText = "🔴";
+            winner = this.teamAName;
+          } else if (this.teamBScore > this.teamAScore) {
+            duelWinnerText.innerHTML = `L'ÉQUIPE <span class='text-blue-600'>${this.teamBName.toUpperCase()}</span> REMPORTE LA VICTOIRE !`;
+            document.getElementById('resultTrophyIcon').innerText = "🔵";
+            winner = this.teamBName;
+          } else {
+            duelWinnerText.innerHTML = "🤝 ÉGALITÉ PARFAITE !";
+            document.getElementById('resultTrophyIcon').innerText = "⚖️";
+            winner = "Égalité";
+          }
+          
+          this.saveScoreToLocal({ 
+            mode: 'duel', 
+            teamA: this.teamAName, scoreA: this.teamAScore,
+            teamB: this.teamBName, scoreB: this.teamBScore,
+            winner: winner, total: this.activeQuestions.length
+          });
+        }
+      }
+
+      saveScoreToLocal(data) {
+        data.date = new Date().toISOString();
+        let scores = JSON.parse(localStorage.getItem('legoHistoryQuizScores')) || [];
+        scores.push(data);
+        localStorage.setItem('legoHistoryQuizScores', JSON.stringify(scores));
+      }
+      
+      showLeaderboard() {
+        this.showScreen('leaderboard');
+        this.renderLeaderboardList('solo');
+      }
+      
+      renderLeaderboardList(filterMode) {
+        const tabSolo = document.getElementById('tabSolo');
+        const tabDuel = document.getElementById('tabDuel');
+        if (filterMode === 'solo') {
+          tabSolo.className = "text-blue-600 border-b-4 border-blue-600 px-4 py-2 transition-colors";
+          tabDuel.className = "text-slate-400 hover:text-slate-600 px-4 py-2 transition-colors";
+        } else {
+          tabDuel.className = "text-blue-600 border-b-4 border-blue-600 px-4 py-2 transition-colors";
+          tabSolo.className = "text-slate-400 hover:text-slate-600 px-4 py-2 transition-colors";
+        }
+        
+        const listContainer = document.getElementById('leaderboardList');
+        listContainer.innerHTML = '';
+        
+        let scores = JSON.parse(localStorage.getItem('legoHistoryQuizScores')) || [];
+        let filteredScores = scores.filter(s => s.mode === filterMode);
+        
+        if (filteredScores.length === 0) {
+          listContainer.innerHTML = `<div class="text-center py-12 text-slate-400 font-bold text-lg">Les archives sont vides.</div>`;
+          return;
+        }
+        
+        if (filterMode === 'solo') {
+          filteredScores.sort((a, b) => {
+            const rA = a.score / a.total, rB = b.score / b.total;
+            if (rB !== rA) return rB - rA;
+            return new Date(b.date) - new Date(a.date);
+          });
+          
+          filteredScores.forEach((s, idx) => {
+            const date = new Date(s.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }).replace(':', 'h');
+            listContainer.innerHTML += `
+              <div class="flex items-center justify-between p-4 bg-white border-2 border-slate-200 rounded-lg shadow-sm">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 text-center font-black ${idx === 0 ? 'text-yellow-500 text-3xl' : 'text-slate-400 text-2xl'}">
+                    #${idx + 1}
+                  </div>
+                  <div>
+                    <div class="font-black text-slate-800 text-lg uppercase">${s.name}</div>
+                    <div class="text-xs text-slate-500 font-bold">${date} - <span class="text-blue-600">${s.rank}</span></div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="font-black text-blue-600 text-2xl leading-none">${s.score} <span class="text-sm text-slate-400">/${s.total}</span></div>
+                </div>
+              </div>
+            `;
+          });
+        } else {
+          filteredScores.sort((a, b) => new Date(b.date) - new Date(a.date));
+          filteredScores.forEach((s, idx) => {
+            const date = new Date(s.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }).replace(':', 'h');
+            listContainer.innerHTML += `
+              <div class="p-5 bg-white border-2 border-slate-200 rounded-lg space-y-4 shadow-sm">
+                <div class="flex justify-between items-center text-xs text-slate-500 font-bold border-b-2 border-slate-100 pb-2">
+                  <span>Match du : ${date}</span>
+                  <span class="px-2.5 py-1 ${s.winner === 'Égalité' ? 'bg-slate-200 text-slate-700' : 'bg-yellow-100 text-yellow-700'} uppercase font-black rounded">Vainqueur: ${s.winner}</span>
+                </div>
+                <div class="flex items-stretch justify-between gap-4">
+                  <div class="flex-1 text-center team-a-bg rounded-lg p-3 border-b-4 border-red-800 flex flex-col justify-center">
+                    <span class="block text-sm font-black uppercase truncate" title="${s.teamA}">${s.teamA}</span>
+                    <span class="text-3xl font-black leading-none mt-1">${s.scoreA} <span class="text-lg opacity-50">/${s.total}</span></span>
+                  </div>
+                  <div class="flex items-center px-2 font-black text-slate-300 text-xl">VS</div>
+                  <div class="flex-1 text-center team-b-bg rounded-lg p-3 border-b-4 border-blue-800 flex flex-col justify-center">
+                    <span class="block text-sm font-black uppercase truncate" title="${s.teamB}">${s.teamB}</span>
+                    <span class="text-3xl font-black leading-none mt-1">${s.scoreB} <span class="text-lg opacity-50">/${s.total}</span></span>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+      
+      clearLeaderboard() {
+        if (confirm("Vider l'historique de la salle des archives ?")) {
+          localStorage.removeItem('legoHistoryQuizScores');
+          this.renderLeaderboardList('solo');
+        }
+      }
+    }
+
+    const initApp = () => { if (!window.app) window.app = new QuizApp(); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp);
+    else initApp();
+  </script>
+</body>
+</html>
